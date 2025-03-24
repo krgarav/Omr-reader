@@ -36,6 +36,11 @@ function processBubbles(gridConfig, bubbles) {
   return result.map((val, idx) => `Row ${idx + 1} ${val}`).join(" , ");
 }
 
-
+function calculateGridProperties(imageWidth, imageHeight, totalRows, totalCols) {
+  return {
+      row_Height: Math.floor(imageHeight / totalRows),
+      col_Width: Math.floor(imageWidth / totalCols)
+  };
+}
 
 module.exports = processBubbles;

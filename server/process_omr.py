@@ -1,23 +1,12 @@
-from flask import Flask, request, jsonify
+import sys
 import cv2
 import numpy as np
+import json
 import os
 
-app = Flask(__name__)
-
 UPLOAD_FOLDER = "uploads"
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
 
-@app.route("/process-omr", methods=["POST"])
-
-@app.route("/process-omr", methods=["POST"])
-def process_omr():
-    data = request.get_json()
-    if not data or "fileName" not in data:
-        return jsonify({"error": "No filename provided"}), 400
-
-    file_name = data["fileName"]
+def process_omr(file_name):
     filepath = os.path.join(UPLOAD_FOLDER, file_name)
 
     try:
@@ -44,17 +33,15 @@ def process_omr():
                 if fill_ratio > 0.5:  # Consider it "filled" if more than 50% pixels are white
                     filled_bubbles.append({"x": x, "y": y, "width": w, "height": h})
 
-                    # Debug: Draw detected filled bubbles
-                    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)  # Green for filled
-
-        # Save debug image (optional)
-        debug_path = os.path.join(UPLOAD_FOLDER, "debug_" + file_name)
-        cv2.imwrite(debug_path, image)
-
-        return jsonify({"success": True, "bubbles": filled_bubbles, "debug_image": debug_path})
-
+        # Return JSON result
+        result = {"success": True, "bubbles": filled_bubbles}
+        print(json.dumps(result))
+    
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(json.dumps({"error": str(e)}))
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    if len(sys.argv) < 2:
+        print(json.dumps({"error": "No filename provided"}))
+    else:
+        process_omr(sys.argv[1])

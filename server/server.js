@@ -4,6 +4,7 @@ const path = require("path");
 const cors = require("cors");
 const fs = require("fs");
 const axios = require("axios");
+const sharp = require("sharp");
 const processBubbles = require("./Helper/processedFn");
 
 const app = express();
@@ -22,6 +23,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+const getImageDimensions = async (fileName) => {
+  try {
+    const imagePath = path.join(__dirname, "uploads", fileName);
+    const metadata = await sharp(imagePath).metadata();
+    return { width: metadata.width, height: metadata.height };
+  } catch (error) {
+    throw new Error("Error reading image: " + error.message);
+  }
+};
 // Endpoint to send image to Python server
 app.post("/process-omr", upload.single("image"), async (req, res) => {
   if (!req.file) {
@@ -42,15 +52,19 @@ app.post("/process-omr", upload.single("image"), async (req, res) => {
       { headers: { "Content-Type": "application/json" } }
     );
     // Example grid configuration
-    const gridConfig = {
-      Total_Row: 5,
-      Total_Col: 4,
-      fieldType: "alpha",
-      readingDirection: "top to bottom",
-    };
+
     if (response.data) {
+      const { width, height } = await getImageDimensions(req.file.filename);
+      const gridConfig = {
+        Total_Row: 5,
+        Total_Col: 4,
+        fieldType: "alpha",
+        readingDirection: "top to bottom",
+        imageHeight: height,
+        imageWidth: width,
+      };
       const str = processBubbles(gridConfig, response.data.bubbles);
-      return res.json({ result: str , reading_data : response.data});
+      return res.json({ result: str, reading_data: response.data });
     }
     fs.unlinkSync(imagePath); // Delete image after processing
     res.json(response.data);

@@ -1,10 +1,10 @@
 function processBubbles(gridConfig, bubbles) {
   const { Total_Row, Total_Col, imageWidth, imageHeight } = gridConfig;
-  const data = calculateGridProperties(263, 179, Total_Row, Total_Col);
+  console.log(imageWidth,imageHeight)
+  const data = calculateGridProperties(imageWidth, imageHeight, Total_Row, Total_Col);
   const row_Height = data.row_Height;
   const col_Width = data.col_Width;
-  console.log(row_Height);
-  console.log(col_Width)
+
   // Define column letters
   const columnLetters = ["A", "B", "C", "D"];
 

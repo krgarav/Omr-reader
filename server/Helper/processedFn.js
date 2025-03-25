@@ -1,6 +1,10 @@
 function processBubbles(gridConfig, bubbles) {
-  const { Total_Row, Total_Col, row_Height, col_Width } = gridConfig;
-
+  const { Total_Row, Total_Col, imageWidth, imageHeight } = gridConfig;
+  const data = calculateGridProperties(263, 179, Total_Row, Total_Col);
+  const row_Height = data.row_Height;
+  const col_Width = data.col_Width;
+  console.log(row_Height);
+  console.log(col_Width)
   // Define column letters
   const columnLetters = ["A", "B", "C", "D"];
 
@@ -36,10 +40,15 @@ function processBubbles(gridConfig, bubbles) {
   return result.map((val, idx) => `Row ${idx + 1} ${val}`).join(" , ");
 }
 
-function calculateGridProperties(imageWidth, imageHeight, totalRows, totalCols) {
+function calculateGridProperties(
+  imageWidth,
+  imageHeight,
+  totalRows,
+  totalCols
+) {
   return {
-      row_Height: Math.floor(imageHeight / totalRows),
-      col_Width: Math.floor(imageWidth / totalCols)
+    row_Height: Math.floor(imageHeight / totalRows),
+    col_Width: Math.floor(imageWidth / totalCols),
   };
 }
 

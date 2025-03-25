@@ -45,8 +45,6 @@ app.post("/process-omr", upload.single("image"), async (req, res) => {
     const gridConfig = {
       Total_Row: 5,
       Total_Col: 4,
-      row_Height: 34, // Adjust based on actual grid spacing
-      col_Width: 50, // Adjust based on actual column width
       fieldType: "alpha",
       readingDirection: "top to bottom",
     };

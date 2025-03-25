@@ -11,12 +11,8 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 @app.route("/process-omr", methods=["POST"])
 def process_omr():
-    print(">>>>>>>>>", request.get_json())
-    # data = request.get_json()  # Ensure we extract JSON properly
-    # if not data or "fileName" not in data:
-    #     return jsonify({"error": "No filename provided"}), 400
-    # if "image" not in request.form:
-    #     return jsonify({"error": "No file uploaded"}), 400
+    
+   
     data = request.get_json()  # Ensure we extract JSON properly
     if not data or "fileName" not in data:
         return jsonify({"error": "No filename provided"}), 400

@@ -114,6 +114,25 @@ const MultipleCropper = () => {
     });
   };
 
+  const submitHandler = ()=>{
+    const image = imageRef.current;
+    if (!image) return;
+
+    const imageRect = image.getBoundingClientRect();
+    const scaleX = image.naturalWidth / imageRect.width;
+    const scaleY = image.naturalHeight / imageRect.height;
+
+    const relativeCrops = crops.map((crop) => ({
+      x: Math.round(crop.x * scaleX),
+      y: Math.round(crop.y * scaleY),
+      width: Math.round(crop.width * scaleX),
+      height: Math.round(crop.height * scaleY),
+      rows: crop.rows,
+      cols: crop.cols,
+    }));
+    console.log(relativeCrops)
+
+  }
   return (
     <div>
       <div
@@ -129,7 +148,7 @@ const MultipleCropper = () => {
       >
         <img
           ref={imageRef}
-          src="https://static.vecteezy.com/system/resources/thumbnails/036/324/708/small/ai-generated-picture-of-a-tiger-walking-in-the-forest-photo.jpg"
+          src="https://res.cloudinary.com/dje269eh5/image/upload/v1722332055/omrimages/zjkq38asxfdcuo3xvzaj.jpg"
           style={{ width: "100%", height: "60vh", cursor: "crosshair" }}
           alt="Cropper"
         />
@@ -144,7 +163,8 @@ const MultipleCropper = () => {
                 top: `${crop.y}px`,
                 width: `${crop.width}px`,
                 height: `${crop.height}px`,
-                background: "rgba(255, 0, 0, 0.3)",
+                background: "rgba(255, 255, 255, 0.3)",
+
                 cursor: "move",
                 display: "grid",
                 gridTemplateColumns: `repeat(${crop.cols}, 1fr)`,
@@ -196,6 +216,9 @@ const MultipleCropper = () => {
           //   value={crop.rows}
           //   onChange={(e) => handleGridChange(index, "rows", e.target.value)}
         />
+      </div>
+      <div>
+        <button onClick={submitHandler}>Submit</button>
       </div>
     </div>
   );

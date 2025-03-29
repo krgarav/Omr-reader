@@ -4,6 +4,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import OmrProcessor from "./Component/Omeuploader";
 import MultiCrop from "./Component/MultipleCropper";
+import CropperSelector from "./Component/CropperSelector";
 
 function App() {
   useEffect(() => {
@@ -16,8 +17,9 @@ function App() {
   
   return (
     <>
-      <OmrProcessor />
+      {/* <OmrProcessor /> */}
       {/* <MultiCrop  /> */}
+      <CropperSelector/>
     </>
   );
 }

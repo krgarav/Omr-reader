@@ -1,227 +1,186 @@
-import React, { useState, useRef } from "react";
-import "cropperjs/dist/cropper.css";
+import React, { useState, useRef, useEffect } from "react";
+import { Rnd } from "react-rnd";
 
-const MultipleCropper = () => {
-  const [crops, setCrops] = useState([]);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [startPos, setStartPos] = useState(null);
-  const [resizingIndex, setResizingIndex] = useState(null);
-  const [resizeDirection, setResizeDirection] = useState(null);
-  const [draggingIndex, setDraggingIndex] = useState(null);
-  const [dragOffset, setDragOffset] = useState(null);
+const MultiCropper = ({ image }) => {
+  const [boxes, setBoxes] = useState([
+    { x: 50, y: 50, width: 150, height: 100 },
+  ]);
+  const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef(null);
   const imageRef = useRef(null);
+  const [imageDims, setImageDims] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+  });
 
-  const handleMouseDown = (e, index = null, direction = null) => {
-    if (!imageRef.current) return;
-    const container = imageRef.current.getBoundingClientRect();
-    const x = e.clientX - container.left;
-    const y = e.clientY - container.top;
-
-    if (index !== null && direction !== null) {
-      setResizingIndex(index);
-      setResizeDirection(direction);
-      return;
-    }
-
-    const clickedBoxIndex = crops.findIndex(
-      (crop) =>
-        x >= crop.x &&
-        x <= crop.x + crop.width &&
-        y >= crop.y &&
-        y <= crop.y + crop.height
-    );
-
-    if (clickedBoxIndex !== -1) {
-      setDraggingIndex(clickedBoxIndex);
-      setDragOffset({
-        x: x - crops[clickedBoxIndex].x,
-        y: y - crops[clickedBoxIndex].y,
-      });
-      return;
-    }
-
-    setIsDrawing(true);
-    setStartPos({ x, y });
-    setCrops([...crops, { x, y, width: 0, height: 0, rows: 2, cols: 2 }]);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDrawing && resizingIndex === null && draggingIndex === null) return;
-    const container = imageRef.current.getBoundingClientRect();
-    const x = e.clientX - container.left;
-    const y = e.clientY - container.top;
-
-    setCrops((prevCrops) => {
-      const updatedCrops = [...prevCrops];
-
-      if (isDrawing && startPos) {
-        updatedCrops[updatedCrops.length - 1] = {
-          ...updatedCrops[updatedCrops.length - 1],
-          x: Math.min(startPos.x, x),
-          y: Math.min(startPos.y, y),
-          width: Math.abs(x - startPos.x),
-          height: Math.abs(y - startPos.y),
-        };
-      } else if (resizingIndex !== null && resizeDirection) {
-        const crop = updatedCrops[resizingIndex];
-        let newCrop = { ...crop };
-
-        if (resizeDirection.includes("right")) {
-          newCrop.width = Math.max(10, x - crop.x);
-        }
-        if (resizeDirection.includes("left")) {
-          newCrop.width = Math.max(10, crop.x + crop.width - x);
-          newCrop.x = x;
-        }
-        if (resizeDirection.includes("bottom")) {
-          newCrop.height = Math.max(10, y - crop.y);
-        }
-        if (resizeDirection.includes("top")) {
-          newCrop.height = Math.max(10, crop.y + crop.height - y);
-          newCrop.y = y;
-        }
-        updatedCrops[resizingIndex] = newCrop;
-      } else if (draggingIndex !== null) {
-        const crop = updatedCrops[draggingIndex];
-        updatedCrops[draggingIndex] = {
-          ...crop,
-          x: x - dragOffset.x,
-          y: y - dragOffset.y,
-        };
+  useEffect(() => {
+    const updateImagePosition = () => {
+      const img = imageRef.current;
+      const container = containerRef.current;
+      if (img && container) {
+        const rect = img.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        setImageDims({
+          top: rect.top - containerRect.top,
+          left: rect.left - containerRect.left,
+          width: rect.width,
+          height: rect.height,
+        });
       }
+    };
+  
+    window.addEventListener("resize", updateImagePosition);
+    return () => window.removeEventListener("resize", updateImagePosition);
+  }, []);
+  
 
-      return updatedCrops;
+  const updateBox = (index, newProps) => {
+    setBoxes((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], ...newProps };
+      return copy;
     });
   };
 
-  const handleMouseUp = () => {
-    setIsDrawing(false);
-    setResizingIndex(null);
-    setResizeDirection(null);
-    setDraggingIndex(null);
-    setDragOffset(null);
+  const addBox = () => {
+    setBoxes((prev) => [...prev, { x: 100, y: 100, width: 150, height: 100 }]);
   };
 
-  const handleDeleteCrop = (index) => {
-    setCrops(crops.filter((_, i) => i !== index));
+  const removeBox = (index) => {
+    setBoxes((prev) => prev.filter((_, i) => i !== index));
+  };
+  const handleImageLoad = () => {
+    const img = imageRef.current;
+    const container = containerRef.current;
+  
+    if (img && container) {
+      const rect = img.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+  
+      setNaturalSize({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+  
+      setImageDims({
+        top: rect.top - containerRect.top,
+        left: rect.left - containerRect.left,
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+  };
+  
+  // Convert box coordinates from container space to image space
+  const getImageCoordinates = (box) => {
+    const { x, y, width, height } = box;
+console.log(x, y, width, height)
+    const naturalWidth = imageRef.current?.naturalWidth || 1;
+    const naturalHeight = imageRef.current?.naturalHeight || 1;
+
+    const renderedWidth = imageDims.width;
+    const renderedHeight = imageDims.height;
+    const offsetLeft = imageDims.left;
+    const offsetTop = imageDims.top;
+
+    const scaleX = naturalWidth / renderedWidth;
+    const scaleY = naturalHeight / renderedHeight;
+
+    return {
+      x: Math.round((x - offsetLeft) * scaleX),
+      y: Math.round((y - offsetTop) * scaleY),
+      width: Math.round(width * scaleX),
+      height: Math.round(height * scaleY),
+    };
   };
 
-  const handleGridChange = (index, type, value) => {
-    setCrops((prevCrops) => {
-      const updatedCrops = [...prevCrops];
-      updatedCrops[index] = { ...updatedCrops[index], [type]: Number(value) };
-      return updatedCrops;
-    });
-  };
-
-  const submitHandler = ()=>{
-    const image = imageRef.current;
-    if (!image) return;
-
-    const imageRect = image.getBoundingClientRect();
-    const scaleX = image.naturalWidth / imageRect.width;
-    const scaleY = image.naturalHeight / imageRect.height;
-
-    const relativeCrops = crops.map((crop) => ({
-      x: Math.round(crop.x * scaleX),
-      y: Math.round(crop.y * scaleY),
-      width: Math.round(crop.width * scaleX),
-      height: Math.round(crop.height * scaleY),
-      rows: crop.rows,
-      cols: crop.cols,
-    }));
-    console.log(relativeCrops)
-
-  }
   return (
     <div>
       <div
+        ref={containerRef}
         style={{
           position: "relative",
-          width: "80%",
-          margin: "auto",
-          textAlign: "center",
+          width: `${naturalSize.width}px`,
+          height: `${naturalSize.height}px`,
+          overflow: "hidden",
+          border: "1px solid #ccc",
+          margin: "0 auto", // center horizontally
         }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
       >
         <img
           ref={imageRef}
-          src="https://res.cloudinary.com/dje269eh5/image/upload/v1722332055/omrimages/zjkq38asxfdcuo3xvzaj.jpg"
-          style={{ width: "100%", height: "60vh", cursor: "crosshair" }}
-          alt="Cropper"
+          src={image}
+          alt="to crop"
+          onLoad={handleImageLoad}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
         />
 
-        {crops.map((crop, index) => (
-          <div key={index} style={{ marginBottom: "10px" }}>
+        {boxes.map((box, index) => (
+          <Rnd
+            key={index}
+            size={{ width: box.width, height: box.height }}
+            position={{ x: box.x, y: box.y }}
+            onDragStop={(e, d) => {
+              updateBox(index, { x: d.x, y: d.y });
+            }}
+            onResizeStop={(e, direction, ref, delta, position) => {
+              updateBox(index, {
+                width: parseInt(ref.style.width),
+                height: parseInt(ref.style.height),
+                ...position,
+              });
+            }}
+            bounds="parent"
+          >
             <div
               style={{
-                position: "absolute",
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(255, 0, 0, 0.2)",
                 border: "2px solid red",
-                left: `${crop.x}px`,
-                top: `${crop.y}px`,
-                width: `${crop.width}px`,
-                height: `${crop.height}px`,
-                background: "rgba(255, 255, 255, 0.3)",
-
-                cursor: "move",
-                display: "grid",
-                gridTemplateColumns: `repeat(${crop.cols}, 1fr)`,
-                gridTemplateRows: `repeat(${crop.rows}, 1fr)`,
+                position: "relative",
               }}
-              onMouseDown={(e) => handleMouseDown(e, index)}
             >
-              {Array.from({ length: crop.rows * crop.cols }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    border: "1px solid black",
-                    width: "100%",
-                    height: "100%",
-                  }}
-                ></div>
-              ))}
               <button
-                onClick={() => handleDeleteCrop(index)}
+                onClick={() => removeBox(index)}
                 style={{
                   position: "absolute",
-                  top: "-10px",
-                  right: "-10px",
-                  background: "red",
-                  color: "white",
-                  border: "none",
+                  top: -10,
+                  right: -10,
+                  background: "#fff",
+                  border: "1px solid red",
                   borderRadius: "50%",
-                  width: "20px",
-                  height: "20px",
+                  width: 20,
+                  height: 20,
                   cursor: "pointer",
+                  fontSize: "12px",
+                  lineHeight: "18px",
+                  padding: 0,
                 }}
               >
                 ×
               </button>
             </div>
-          </div>
+          </Rnd>
         ))}
       </div>
-      <div>
-        <label>Cols:</label>
-        <input
-          type="number"
-          //   value={crop.cols}
-          //   onChange={(e) => handleGridChange(index, "cols", e.target.value)}
-        />
-        <label>Rows:</label>
-        <input
-          type="number"
-          //   value={crop.rows}
-          //   onChange={(e) => handleGridChange(index, "rows", e.target.value)}
-        />
-      </div>
-      <div>
-        <button onClick={submitHandler}>Submit</button>
+
+      <div style={{ marginTop: "10px" }}>
+        <button onClick={addBox}>Add Box</button>
+        <h4>Normalized Image Coordinates:</h4>
+        <pre>{JSON.stringify(boxes.map(getImageCoordinates), null, 2)}</pre>
       </div>
     </div>
   );
 };
 
-export default MultipleCropper;
+export default MultiCropper;

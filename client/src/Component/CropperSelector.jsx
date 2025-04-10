@@ -4,19 +4,17 @@ import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import { useState } from "react";
 import { useEffect } from "react";
-import imgSrc from "../assets/img.jpg";
 
+import { useDispatch } from "react-redux";
+import CroppedData from "./CroppedData";
 const CropperSelector = () => {
+  const [image, setImage] = useState(null);
   const [cropData, setCropData] = useState(null);
   const [allCoordinates, setAllCoordinates] = useState([]);
   const [cropBoxes, setCropBoxes] = useState([]);
+  const [boxData, setSetBoxData] = useState([]);
+  const dispatch = useDispatch();
   const cropperRef = useRef(null);
-
-  //   useEffect(() => {
-  //     if (cropData) {
-  //       setCropBoxes([cropData?.relativeCoordinates]);
-  //     }
-  //   }, [cropData]);
   console.log(cropBoxes);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -120,9 +118,25 @@ const CropperSelector = () => {
       //   const obj = cropData?.relativeCoordinates;
       const obj = cropData?.coordinates;
       console.log(obj);
+      // dispatch(obj)
       setCropBoxes((prev) => {
         return [...prev, obj];
       });
+      const {
+        topLeftX,
+        topLeftY,
+        bottomRightX,
+        bottomRightY
+      } = cropData.coordinates;
+
+      const obj2 = {
+        x: topLeftX,
+        y: topLeftY,
+        width: bottomRightX - topLeftX,
+        height: bottomRightY - topLeftY
+      };
+
+      setSetBoxData((prev) => [...prev, obj2]);
     }
   };
   const clearSelection = () => {
@@ -130,14 +144,29 @@ const CropperSelector = () => {
       cropperRef.current.cropper.clear();
     }
   };
-
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Convert file to a data URL for preview/storage
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result); // Store base64 image in state
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   console.log(cropData);
   return (
     <div>
+      <div>
+        <label>Upload File</label>
+        <input type="file" accept="image/*" onChange={handleImageChange} />
+      </div>
+      <CroppedData />
       <div className="border border-primary" style={{ position: "relative" }}>
         <Cropper
-          src={imgSrc}
-          style={{ height: "80dvh", width: "100dvw" }}
+          src={image}
+          style={{ height: "80dvh" }}
           initialAspectRatio={1}
           guides={true}
           ref={cropperRef}
@@ -153,7 +182,7 @@ const CropperSelector = () => {
           checkOrientation={false}
           rotatable={true}
           autoCrop={false}
-          zoomable={false}
+          zoomable={true}
         />
         {allCoordinates}
       </div>
@@ -170,6 +199,33 @@ const CropperSelector = () => {
         >
           Clear selection
         </button>
+      </div>
+      <div>
+        
+      {boxData.length > 0 && (
+        <table border="1" cellPadding="10" style={{ marginTop: '20px', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>X</th>
+              <th>Y</th>
+              <th>Width</th>
+              <th>Height</th>
+            </tr>
+          </thead>
+          <tbody>
+            {boxData.map((box, index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>{box.x.toFixed(2)}</td>
+                <td>{box.y.toFixed(2)}</td>
+                <td>{box.width.toFixed(2)}</td>
+                <td>{box.height.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       </div>
     </div>
   );

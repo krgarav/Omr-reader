@@ -37,7 +37,7 @@ function processBubbles(gridConfig, bubbles) {
   });
 
   // Format output
-  return result.map((val, idx) => `Row ${idx + 1} ${val}`).join(" , ");
+  return result.map((val, idx) => `Col ${idx + 1} ${val}`).join(" , ");
 }
 
 function calculateGridProperties(

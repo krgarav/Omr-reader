@@ -1,24 +1,37 @@
 function processBubbles(gridConfig, bubbles) {
-  const { Total_Row, Total_Col, imageWidth, imageHeight } = gridConfig;
-  console.log(imageWidth,imageHeight)
-  const data = calculateGridProperties(imageWidth, imageHeight, Total_Row, Total_Col);
+  const {
+    Total_Row,
+    Total_Col,
+    imageWidth,
+    imageHeight,
+    offsetX,
+    offsetY,
+    readingDirection,
+    totalFields,
+    fieldType
+  } = gridConfig;
+  const data = calculateGridProperties(
+    imageWidth,
+    imageHeight,
+    Total_Row,
+    Total_Col
+  );
   const row_Height = data.row_Height;
   const col_Width = data.col_Width;
 
   // Define column letters
-  const columnLetters = ["A", "B", "C", "D"];
+  // const columnLetters = ["A", "B", "C", "D"];
+  const columnLetters= generateArrOfFields(fieldType,totalFields)
 
   // Create a result array filled with blanks
   let result = new Array(Total_Row).fill("blank");
 
-  // Function to determine row index based on 'y' position
   function getRowIndex(y) {
-    return Math.floor(y / row_Height);
+    return Math.floor((y - offsetY) / row_Height);
   }
 
-  // Function to determine column index based on 'x' position
   function getColumnIndex(x) {
-    return Math.floor(x / col_Width);
+    return Math.floor((x - offsetX) / col_Width);
   }
 
   // Process each detected bubble
@@ -32,7 +45,11 @@ function processBubbles(gridConfig, bubbles) {
       colIndex >= 0 &&
       colIndex < Total_Col
     ) {
-      result[rowIndex] = columnLetters[colIndex]; // Map column index to A, B, C, D
+      if (readingDirection !== "topToBottom") {
+        result[colIndex] = columnLetters[rowIndex];
+      } else {
+        result[rowIndex] = columnLetters[colIndex]; // Map column index to A, B, C, D
+      }
     }
   });
 
@@ -50,6 +67,19 @@ function calculateGridProperties(
     row_Height: Math.floor(imageHeight / totalRows),
     col_Width: Math.floor(imageWidth / totalCols),
   };
+}
+function generateArrOfFields(fieldType, totalFields) {
+  const arr = [];
+  if (fieldType === "alpha") {
+    for (let i = 0; i < totalFields; i++) {
+      arr.push(String.fromCharCode(65 + i)); // 65 is ASCII value of 'A'
+    }
+  } else {
+    for (let i = 0; i < totalFields; i++) {
+      arr.push(i);
+    }
+  }
+  return arr;
 }
 
 module.exports = processBubbles;

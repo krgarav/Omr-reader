@@ -7,12 +7,15 @@ const axios = require("axios");
 const sharp = require("sharp");
 const processBubbles = require("./Helper/processedFn");
 
+const router = require("./Routes/route.js"); // Import your routes
+
 const app = express();
 const port = 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(router);
 
 // Multer for file uploads
 const storage = multer.diskStorage({
@@ -23,56 +26,63 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-const getImageDimensions = async (fileName) => {
-  try {
-    const imagePath = path.join(__dirname, "uploads", fileName);
-    const metadata = await sharp(imagePath).metadata();
-    return { width: metadata.width, height: metadata.height };
-  } catch (error) {
-    throw new Error("Error reading image: " + error.message);
-  }
-};
 // Endpoint to send image to Python server
-app.post("/process-omr", upload.single("image"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-
-  const imagePath = path.join(__dirname, "uploads", req.file.filename);
-  const pythonServerUrl = "http://127.0.0.1:5001/process-omr";
-  const fileName = req.file.filename;
-  try {
-    // Send image to Python server
-    const formData = new FormData();
-    formData.append("image", fs.createReadStream(imagePath));
-
-    const response = await axios.post(
-      pythonServerUrl,
-      { fileName: fileName },
-      { headers: { "Content-Type": "application/json" } }
+app.post(
+  "/process-omr",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "data", maxCount: 1 }, // optional if sending as JSON string
+  ]),
+  async (req, res) => {
+    console.log("called");
+    const imagePath = path.join(
+      __dirname,
+      "uploads",
+      req.files["image"][0].filename
     );
-    // Example grid configuration
+    const dataFile = req.files["data"]?.[0];
+    const pythonServerUrl = "http://127.0.0.1:5001/process-omr";
+    const fileName = req.files["image"][0].filename;
 
-    if (response.data) {
-      const { width, height } = await getImageDimensions(req.file.filename);
-      const gridConfig = {
-        Total_Row: 5,
-        Total_Col: 4,
-        fieldType: "alpha",
-        readingDirection: "top to bottom",
-        imageHeight: height,
-        imageWidth: width,
+    const jsonPath = path.join(__dirname, "uploads", dataFile.filename);
+
+    // ✅ Read and parse JSON file
+    const jsonString = fs.readFileSync(jsonPath, "utf-8");
+    const jsonData = JSON.parse(jsonString);
+
+    try {
+      // Send image to Python server
+      const obj = {
+        ...jsonData,
+        file_name: fileName,
       };
-      const str = processBubbles(gridConfig, response.data.bubbles);
-      return res.json({ result: str, reading_data: response.data });
+
+      const response = await axios.post(pythonServerUrl, obj, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      // Example grid configuration
+      if (response.data) {
+        const { width, height, x, y } = jsonData;
+
+        const gridConfig = {
+          ...jsonData,
+          imageHeight: height,
+          imageWidth: width,
+          offsetX: x,
+          offsetY: y,
+        };
+        const str = processBubbles(gridConfig, response.data.bubbles);
+        return res.json({ result: str, reading_data: response.data });
+      }
+      fs.unlinkSync(imagePath); // Delete image after processing
+      res.json(response.data);
+    } catch (error) {
+      console.error("Python processing failed:", error);
+      res.status(500).json({ error: "Processing failed" });
     }
-    fs.unlinkSync(imagePath); // Delete image after processing
-    res.json(response.data);
-  } catch (error) {
-    console.error("Python processing failed:", error);
-    res.status(500).json({ error: "Processing failed" });
   }
-});
+);
 
 // Start server
 app.listen(port, () => {

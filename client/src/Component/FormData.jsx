@@ -10,11 +10,17 @@ const FormData = ({
     e.preventDefault();
     const enteredRow = e.target[0].value;
     const enteredCol = e.target[1].value;
+    const enteredGap = e.target[2].value;
 
     setBoxes((prevBoxes) =>
       prevBoxes.map((box, idx) =>
         idx === activeBox
-          ? { ...box, totalRow: enteredRow, totalCol: enteredCol }
+          ? {
+              ...box,
+              totalRow: enteredRow,
+              totalCol: enteredCol,
+              gap: enteredGap,
+            }
           : box
       )
     );
@@ -22,7 +28,7 @@ const FormData = ({
   return (
     <form onSubmit={onSubmitHandler}>
       <div>
-        <label for="totalRow">Row:</label>
+        <label for="totalRow">Col:</label>
         <input
           type="number"
           id="totalRow"
@@ -38,7 +44,7 @@ const FormData = ({
       </div>
 
       <div>
-        <label for="totalCol">Col:</label>
+        <label for="totalCol">Row:</label>
         <input
           type="number"
           id="totalCol"
@@ -55,7 +61,21 @@ const FormData = ({
 
       <div>
         <label for="margin">Margin:</label>
-        <input type="range" id="phone" name="phone" />
+        <input
+          type="range"
+          id="phone"
+          name="phone"
+          onChange={(e) => {
+            setCurrentBoxData(() => {
+              return { ...currentBoxData, gap: e.target.value };
+            });
+            setBoxes((prevBoxes) =>
+              prevBoxes.map((box, idx) =>
+                idx === activeBox ? { ...box, gap: e.target.value } : box
+              )
+            );
+          }}
+        />
       </div>
 
       <button type="submit">Submit</button>

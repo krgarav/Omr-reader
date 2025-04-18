@@ -4,7 +4,15 @@ import FormData from "../Component/FormData";
 import classes from "./Template.module.css";
 const TemplateEditor = ({ image }) => {
   const [boxes, setBoxes] = useState([
-    { x: 50, y: 50, width: 150, height: 100, totalCol: 8, totalRow: 10 },
+    {
+      x: 50,
+      y: 50,
+      width: 150,
+      height: 100,
+      totalCol: 8,
+      totalRow: 10,
+      gap: 1,
+    },
   ]);
   const [activeBox, setActiveBox] = useState(null);
   const [currentBoxData, setCurrentBoxData] = useState(null);
@@ -21,7 +29,15 @@ const TemplateEditor = ({ image }) => {
   const addBox = () => {
     setBoxes((prev) => [
       ...prev,
-      { x: 100, y: 100, width: 150, height: 100, totalCol: 8, totalRow: 10 },
+      {
+        x: 100,
+        y: 100,
+        width: 150,
+        height: 100,
+        totalCol: 8,
+        totalRow: 10,
+        gap:1,
+      },
     ]);
   };
 
@@ -49,7 +65,7 @@ const TemplateEditor = ({ image }) => {
       height: Math.round(height * scaleY),
     };
   };
-  console.log(activeBox);
+ 
   const selectedFields = boxes.map((box, index) => {
     const style = index !== activeBox ? classes.activeField : classes.notActive;
     return (
@@ -81,7 +97,7 @@ const TemplateEditor = ({ image }) => {
               style={{
                 display: "flex",
                 // justifyContent: "space-evenly",
-                gap: "77px",
+                gap: `${box.gap}px`,
                 alignItems: "center",
                 width: "100%",
                 height: `${100 / box.totalCol}%`,

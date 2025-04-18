@@ -1,11 +1,11 @@
 {
-  "x": 785,
-  "y": 463,
+  "x": 783,
+  "y": 688,
   "width": 179,
-  "height": 101,
+  "height": 97,
   "Total_Row": 5,
   "Total_Col": 4,
   "fieldType": "alpha",
-  "readingDirection": "topToBottom",
+  "readingDirection": "topTo Bottom",
   "totalFields": 4
 }

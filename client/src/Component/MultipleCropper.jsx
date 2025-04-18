@@ -5,36 +5,7 @@ const MultiCropper = ({ image }) => {
   const [boxes, setBoxes] = useState([
     { x: 50, y: 50, width: 150, height: 100 },
   ]);
-  const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
-  const containerRef = useRef(null);
   const imageRef = useRef(null);
-  const [imageDims, setImageDims] = useState({
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-  });
-
-  useEffect(() => {
-    const updateImagePosition = () => {
-      const img = imageRef.current;
-      const container = containerRef.current;
-      if (img && container) {
-        const rect = img.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        setImageDims({
-          top: rect.top - containerRect.top,
-          left: rect.left - containerRect.left,
-          width: rect.width,
-          height: rect.height,
-        });
-      }
-    };
-  
-    window.addEventListener("resize", updateImagePosition);
-    return () => window.removeEventListener("resize", updateImagePosition);
-  }, []);
-  
 
   const updateBox = (index, newProps) => {
     setBoxes((prev) => {
@@ -51,46 +22,24 @@ const MultiCropper = ({ image }) => {
   const removeBox = (index) => {
     setBoxes((prev) => prev.filter((_, i) => i !== index));
   };
-  const handleImageLoad = () => {
-    const img = imageRef.current;
-    const container = containerRef.current;
-  
-    if (img && container) {
-      const rect = img.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-  
-      setNaturalSize({
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-      });
-  
-      setImageDims({
-        top: rect.top - containerRect.top,
-        left: rect.left - containerRect.left,
-        width: rect.width,
-        height: rect.height,
-      });
-    }
-  };
-  
-  // Convert box coordinates from container space to image space
+
   const getImageCoordinates = (box) => {
     const { x, y, width, height } = box;
-console.log(x, y, width, height)
-    const naturalWidth = imageRef.current?.naturalWidth || 1;
-    const naturalHeight = imageRef.current?.naturalHeight || 1;
 
-    const renderedWidth = imageDims.width;
-    const renderedHeight = imageDims.height;
-    const offsetLeft = imageDims.left;
-    const offsetTop = imageDims.top;
+    const img = imageRef.current;
+    if (!img) return box;
 
+    const renderedWidth = img.clientWidth;
+    const renderedHeight = img.clientHeight;
+    const naturalWidth = img.naturalWidth;
+    const naturalHeight = img.naturalHeight;
+    console.log(naturalWidth);
     const scaleX = naturalWidth / renderedWidth;
     const scaleY = naturalHeight / renderedHeight;
 
     return {
-      x: Math.round((x - offsetLeft) * scaleX),
-      y: Math.round((y - offsetTop) * scaleY),
+      x: Math.round(x * scaleX),
+      y: Math.round(y * scaleY),
       width: Math.round(width * scaleX),
       height: Math.round(height * scaleY),
     };
@@ -99,28 +48,20 @@ console.log(x, y, width, height)
   return (
     <div>
       <div
-        ref={containerRef}
         style={{
           position: "relative",
-          width: `${naturalSize.width}px`,
-          height: `${naturalSize.height}px`,
-          overflow: "hidden",
+          display: "inline-block",
           border: "1px solid #ccc",
-          margin: "0 auto", // center horizontally
         }}
       >
         <img
           ref={imageRef}
           src={image}
           alt="to crop"
-          onLoad={handleImageLoad}
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            position: "absolute",
-            top: 0,
-            left: 0,
+            display: "block",
+            maxWidth: "100%",
+            height: "80vh",
           }}
         />
 
@@ -150,6 +91,32 @@ console.log(x, y, width, height)
                 position: "relative",
               }}
             >
+              {Array.from({ length: 10 }).map((_, rowIdx) => (
+                <div
+                  key={rowIdx}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-evenly",
+                    alignItems: "center",
+                    width: "100%",
+                    height: `${100 / 10}%`,
+                  }}
+                >
+                  {Array.from({ length: 8 }).map((_, colIdx) => (
+                    <div
+                      key={colIdx}
+                      style={{
+                        aspectRatio: "1",
+                        height: "80%",
+                        borderRadius: "50%",
+                        border: "1px solid black",
+                        backgroundColor: "transparent",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
               <button
                 onClick={() => removeBox(index)}
                 style={{
@@ -165,6 +132,8 @@ console.log(x, y, width, height)
                   fontSize: "12px",
                   lineHeight: "18px",
                   padding: 0,
+                  zIndex: 9990,
+                  color: "cadetblue",
                 }}
               >
                 ×
@@ -176,7 +145,7 @@ console.log(x, y, width, height)
 
       <div style={{ marginTop: "10px" }}>
         <button onClick={addBox}>Add Box</button>
-        <h4>Normalized Image Coordinates:</h4>
+        <h4>Image Coordinates (based on natural image size):</h4>
         <pre>{JSON.stringify(boxes.map(getImageCoordinates), null, 2)}</pre>
       </div>
     </div>

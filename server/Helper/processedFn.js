@@ -8,7 +8,7 @@ function processBubbles(gridConfig, bubbles) {
     offsetY,
     readingDirection,
     totalFields,
-    fieldType
+    fieldType,
   } = gridConfig;
   const data = calculateGridProperties(
     imageWidth,
@@ -21,10 +21,10 @@ function processBubbles(gridConfig, bubbles) {
 
   // Define column letters
   // const columnLetters = ["A", "B", "C", "D"];
-  const columnLetters= generateArrOfFields(fieldType,totalFields)
+  const columnLetters = generateArrOfFields(fieldType, totalFields);
 
-  // Create a result array filled with blanks
-  let result = new Array(Total_Row).fill("blank");
+  // const row = readingDirection === "topToBottom" ? Total_Row : Total_Col;
+  // let result = new Array(row).fill("blank");
 
   function getRowIndex(y) {
     return Math.floor((y - offsetY) / row_Height);
@@ -33,28 +33,85 @@ function processBubbles(gridConfig, bubbles) {
   function getColumnIndex(x) {
     return Math.floor((x - offsetX) / col_Width);
   }
+  const row = readingDirection !== "topToBottom" ? Total_Row : Total_Col;
+  let result = new Array(row).fill("blank");
+  // if (readingDirection !== "topToBottom") {
+  //   for (let i = 0; i < Total_Row; i++) {
+  //     for (let j = 0; j < Total_Col; j++) {
+  //       if (bubbles[i + j]) {
+  //         const bubbleData = bubbles[i + j];
+  //         let rowIndex = getRowIndex(bubbleData.y);
+  //         let colIndex = getColumnIndex(bubbleData.x);
 
-  // Process each detected bubble
-  bubbles.forEach(({ x, y }) => {
-    let rowIndex = getRowIndex(y);
-    let colIndex = getColumnIndex(x);
+  //         if (
+  //           rowIndex >= 0 &&
+  //           rowIndex < Total_Row &&
+  //           colIndex >= 0 &&
+  //           colIndex < Total_Col
+  //         ) {
+  //           result[rowIndex] = columnLetters[colIndex];
+  //         }
+  //       }
+  //     }
+  //   }
 
-    if (
-      rowIndex >= 0 &&
-      rowIndex < Total_Row &&
-      colIndex >= 0 &&
-      colIndex < Total_Col
-    ) {
-      if (readingDirection !== "topToBottom") {
+  //   // Format output
+  //   return result.map((val, idx) => `Row ${idx + 1} ${val}`).join(" , ");
+  // } else {
+  //   for (let i = 0; i < Total_Col; i++) {
+  //     for (let j = 0; j < Total_Row; j++) {
+  //       if (bubbles[i + j]) {
+  //         const bubbleData = bubbles[i + j];
+  //         let rowIndex = getRowIndex(bubbleData.y);
+  //         let colIndex = getColumnIndex(bubbleData.x);
+
+  //         if (
+  //           rowIndex >= 0 &&
+  //           rowIndex < Total_Row &&
+  //           colIndex >= 0 &&
+  //           colIndex < Total_Col
+  //         ) {
+  //           result[rowIndex] = columnLetters[colIndex];
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return result.map((val, idx) => `Col ${idx + 1} = ${val}`).join(" , ");
+  // }
+
+  if (readingDirection !== "topToBottom") {
+    bubbles.forEach((bubbleData) => {
+      const rowIndex = getRowIndex(bubbleData.y);
+      const colIndex = getColumnIndex(bubbleData.x);
+
+      if (
+        rowIndex >= 0 &&
+        rowIndex < Total_Row &&
+        colIndex >= 0 &&
+        colIndex < Total_Col
+      ) {
         result[colIndex] = columnLetters[rowIndex];
-      } else {
-        result[rowIndex] = columnLetters[colIndex]; // Map column index to A, B, C, D
       }
-    }
-  });
+    });
 
-  // Format output
-  return result.map((val, idx) => `Col ${idx + 1} ${val}`).join(" , ");
+    return result.map((val, idx) => `Col ${idx + 1} = ${val}`).join(" , ");
+  } else {
+    bubbles.forEach((bubbleData) => {
+      const rowIndex = getRowIndex(bubbleData.y);
+      const colIndex = getColumnIndex(bubbleData.x);
+
+      if (
+        rowIndex >= 0 &&
+        rowIndex < Total_Row &&
+        colIndex >= 0 &&
+        colIndex < Total_Col
+      ) {
+        result[rowIndex] = columnLetters[colIndex];
+      }
+    });
+
+    return result.map((val, idx) => `Row ${idx + 1} = ${val}`).join(" , ");
+  }
 }
 
 function calculateGridProperties(

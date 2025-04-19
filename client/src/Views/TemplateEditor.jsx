@@ -36,7 +36,7 @@ const TemplateEditor = ({ image }) => {
         height: 100,
         totalCol: 8,
         totalRow: 10,
-        gap:1,
+        gap: 1,
       },
     ]);
   };
@@ -65,7 +65,7 @@ const TemplateEditor = ({ image }) => {
       height: Math.round(height * scaleY),
     };
   };
- 
+
   const selectedFields = boxes.map((box, index) => {
     const style = index !== activeBox ? classes.activeField : classes.notActive;
     return (
@@ -144,7 +144,7 @@ const TemplateEditor = ({ image }) => {
     );
   });
 
-  const getBubbleCoordinates = (box, imageRef, boxPadding = 0, gap) => {
+  const getBubbleCoordinates = (box, imageRef ) => {
     const image = imageRef.current;
     if (!image) return [];
     // const gap= 12
@@ -155,10 +155,10 @@ const TemplateEditor = ({ image }) => {
     const cols = box.totalRow; // horizontal count
 
     // Area inside the box (excluding optional padding)
-    const innerX = box.x + boxPadding + gap;
-    const innerY = box.y + boxPadding;
-    const innerWidth = box.width - 2 * boxPadding * gap;
-    const innerHeight = box.height - 2 * boxPadding;
+    const innerX = box.x ;
+    const innerY = box.y ;
+    const innerWidth = box.width - 2 ;
+    const innerHeight = box.height - 2 ;
 
     // Row and bubble sizing
     const rowHeight = innerHeight / rows;
@@ -180,9 +180,9 @@ const TemplateEditor = ({ image }) => {
           spaceBetweenBubbles * (col + 1) + // equal space before each bubble
           bubbleWidth * col;
 
-        bubbles.push({
-          x: Math.floor(bubbleX * scaleX + gap),
-          y: Math.floor(bubbleY * scaleY),
+        bubbles.push({ 
+          x: Math.floor((bubbleX * scaleX)+20),
+          y: Math.floor((bubbleY * scaleY)+10),
           width: Math.floor(bubbleWidth * scaleX),
           height: Math.floor(bubbleHeight * scaleY),
           row,
@@ -195,7 +195,7 @@ const TemplateEditor = ({ image }) => {
   };
 
   const allBubbles = boxes.flatMap((box) =>
-    getBubbleCoordinates(box, imageRef, 0, 0)
+    getBubbleCoordinates(box, imageRef)
   );
 
   return (

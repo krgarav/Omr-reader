@@ -17,8 +17,8 @@ const FormData = ({
         idx === activeBox
           ? {
               ...box,
-              totalRow: enteredRow,
-              totalCol: enteredCol,
+              totalCol: enteredRow,
+              totalRow: enteredCol,
               gap: enteredGap,
             }
           : box
@@ -63,9 +63,13 @@ const FormData = ({
         <label for="margin">Margin:</label>
         <input
           type="range"
+          min={0}
+          max={20}
+          step={0.1}
           id="phone"
           name="phone"
           onChange={(e) => {
+            console.log(e.target.value);
             setCurrentBoxData(() => {
               return { ...currentBoxData, gap: e.target.value };
             });

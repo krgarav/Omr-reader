@@ -17,6 +17,19 @@ const TemplateEditor = ({ image }) => {
   const [activeBox, setActiveBox] = useState(null);
   const [currentBoxData, setCurrentBoxData] = useState(null);
   const imageRef = useRef(null);
+  const containerRef = useRef(null);
+  const [trigger, setTrigger] = useState(false);
+  const [containerSize, setContainerSize] = useState({});
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      // console.log("Container size:", width, height);
+      setContainerSize({ width, height });
+      // You can also save it to state if needed:
+      // setContainerSize({ width, height });
+    }
+  }, [boxes, trigger]);
 
   const updateBox = (index, newProps) => {
     setBoxes((prev) => {
@@ -68,6 +81,11 @@ const TemplateEditor = ({ image }) => {
 
   const selectedFields = boxes.map((box, index) => {
     const style = index !== activeBox ? classes.activeField : classes.notActive;
+    const baseSize = 50; // Or your actual base bubble size
+    const minWidth =
+      (box.totalRow * baseSize + (box.totalRow - 1) * box.gap) * box.scale;
+    const minHeight =
+      (box.totalCol * baseSize + (box.totalCol - 1) * box.gap) * box.scale;
     return (
       <Rnd
         key={index}
@@ -76,34 +94,39 @@ const TemplateEditor = ({ image }) => {
         onDragStop={(e, d) => {
           updateBox(index, { x: d.x, y: d.y });
         }}
-        onResizeStop={(e, direction, ref, delta, position) => {
+        onResize={(e, direction, ref, delta, position) => {
+          // setTrigger((prev) => !prev);
+          // const { width } = containerRef.current.getBoundingClientRect();
+          // console.log(width, parseInt(ref.style.width));
+          // if (parseInt(ref.style.width) > containerSize.width) {
           updateBox(index, {
             width: parseInt(ref.style.width),
             height: parseInt(ref.style.height),
             ...position,
           });
+          // }
         }}
+        // minWidth={minWidth}
+        // minHeight={minHeight}
         bounds="parent"
         onClick={() => {
           setActiveBox(index);
           setCurrentBoxData(box);
         }}
-        // disableDragging={index !== activeBox}
       >
-        <div className={style}>
-          {Array.from({ length: box.totalCol }).map((_, rowIdx) => (
+        <div ref={containerRef} className={style}>
+          {Array.from({ length: box.totalRow }).map((_, rowIdx) => (
             <div
               key={rowIdx}
               style={{
                 display: "flex",
-                // justifyContent: "space-evenly",
                 gap: `${box.gap}px`,
                 alignItems: "center",
                 width: "100%",
-                height: `${100 / box.totalCol}%`,
+                height: `${100 / box.totalRow}%`,
               }}
             >
-              {Array.from({ length: box.totalRow }).map((_, colIdx) => (
+              {Array.from({ length: box.totalCol }).map((_, colIdx) => (
                 <div
                   key={colIdx}
                   style={{
@@ -143,46 +166,33 @@ const TemplateEditor = ({ image }) => {
       </Rnd>
     );
   });
+  console.log(boxes);
 
-  const getBubbleCoordinates = (box, imageRef ) => {
+  const getBubbleCoordinates = (box, imageRef) => {
     const image = imageRef.current;
     if (!image) return [];
-    // const gap= 12
     const scaleX = image.naturalWidth / image.clientWidth;
     const scaleY = image.naturalHeight / image.clientHeight;
 
     const rows = box.totalCol; // vertical count
     const cols = box.totalRow; // horizontal count
 
-    // Area inside the box (excluding optional padding)
-    const innerX = box.x ;
-    const innerY = box.y ;
-    const innerWidth = box.width - 2 ;
-    const innerHeight = box.height - 2 ;
+    const innerX = box.x;
+    const innerY = box.y;
 
     // Row and bubble sizing
-    const rowHeight = innerHeight / rows;
-    const bubbleHeight = rowHeight * 0.8;
-    const bubbleWidth = bubbleHeight; // keeping it a circle
-
-    // Horizontal spacing (space-evenly style)
-    const spaceBetweenBubbles = (innerWidth - cols * bubbleWidth) / (cols + 1);
+    const bubbleHeight = box.height / rows;
+    const bubbleWidth = box.width / cols; // keeping it a circle
 
     const bubbles = [];
 
     for (let row = 0; row < rows; row++) {
-      const rowY = innerY + row * rowHeight;
-      const bubbleY = rowY + (rowHeight - bubbleHeight) / 2;
-
+      let bubbleY = innerY + bubbleHeight * row;
       for (let col = 0; col < cols; col++) {
-        const bubbleX =
-          innerX +
-          spaceBetweenBubbles * (col + 1) + // equal space before each bubble
-          bubbleWidth * col;
-
-        bubbles.push({ 
-          x: Math.floor((bubbleX * scaleX)+20),
-          y: Math.floor((bubbleY * scaleY)+10),
+        const bubbleX = innerX + bubbleWidth * col;
+        bubbles.push({
+          x: Math.floor(bubbleX * scaleX),
+          y: Math.floor(bubbleY * scaleY),
           width: Math.floor(bubbleWidth * scaleX),
           height: Math.floor(bubbleHeight * scaleY),
           row,
@@ -190,12 +200,11 @@ const TemplateEditor = ({ image }) => {
         });
       }
     }
-
     return bubbles;
   };
 
   const allBubbles = boxes.flatMap((box) =>
-    getBubbleCoordinates(box, imageRef)
+    getBubbleCoordinates(box, imageRef, box.gap)
   );
 
   return (

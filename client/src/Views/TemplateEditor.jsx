@@ -81,11 +81,7 @@ const TemplateEditor = ({ image }) => {
 
   const selectedFields = boxes.map((box, index) => {
     const style = index !== activeBox ? classes.activeField : classes.notActive;
-    const baseSize = 50; // Or your actual base bubble size
-    const minWidth =
-      (box.totalRow * baseSize + (box.totalRow - 1) * box.gap) * box.scale;
-    const minHeight =
-      (box.totalCol * baseSize + (box.totalCol - 1) * box.gap) * box.scale;
+
     return (
       <Rnd
         key={index}
@@ -95,19 +91,12 @@ const TemplateEditor = ({ image }) => {
           updateBox(index, { x: d.x, y: d.y });
         }}
         onResize={(e, direction, ref, delta, position) => {
-          // setTrigger((prev) => !prev);
-          // const { width } = containerRef.current.getBoundingClientRect();
-          // console.log(width, parseInt(ref.style.width));
-          // if (parseInt(ref.style.width) > containerSize.width) {
           updateBox(index, {
             width: parseInt(ref.style.width),
             height: parseInt(ref.style.height),
             ...position,
           });
-          // }
         }}
-        // minWidth={minWidth}
-        // minHeight={minHeight}
         bounds="parent"
         onClick={() => {
           setActiveBox(index);
@@ -124,6 +113,7 @@ const TemplateEditor = ({ image }) => {
                 alignItems: "center",
                 width: "100%",
                 height: `${100 / box.totalRow}%`,
+                justifyContent: "space-between",
               }}
             >
               {Array.from({ length: box.totalCol }).map((_, colIdx) => (
@@ -131,6 +121,9 @@ const TemplateEditor = ({ image }) => {
                   key={colIdx}
                   style={{
                     aspectRatio: "1",
+                    width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${
+                      box.totalCol
+                    })`,
                     height: "80%",
                     borderRadius: "50%",
                     border: "1px solid black",
@@ -171,40 +164,55 @@ const TemplateEditor = ({ image }) => {
   const getBubbleCoordinates = (box, imageRef) => {
     const image = imageRef.current;
     if (!image) return [];
+
+    // Calculate scaling factors
     const scaleX = image.naturalWidth / image.clientWidth;
     const scaleY = image.naturalHeight / image.clientHeight;
 
-    const rows = box.totalCol; // vertical count
-    const cols = box.totalRow; // horizontal count
+    // Corrected dimension assignments
+    const rows = box.totalRow;
+    const cols = box.totalCol;
+    if (rows <= 0 || cols <= 0) return [];
 
-    const innerX = box.x;
-    const innerY = box.y;
+    // Precompute scaled coordinates and dimensions
+    const scaledInnerX = box.x * scaleX;
+    const scaledInnerY = box.y * scaleY;
+    const scaledBubbleWidth = (box.width / cols) * scaleX;
+    const scaledBubbleHeight = (box.height / rows) * scaleY;
 
-    // Row and bubble sizing
-    const bubbleHeight = box.height / rows;
-    const bubbleWidth = box.width / cols; // keeping it a circle
+    // Precompute integer dimensions once
+    const width = Math.floor(scaledBubbleWidth);
+    const height = Math.floor(scaledBubbleHeight);
 
+    // Cache grid coordinates
+    const xCoords = Array.from({ length: cols }, (_, col) =>
+      Math.floor(scaledInnerX + scaledBubbleWidth * col)
+    );
+    const yCoords = Array.from({ length: rows }, (_, row) =>
+      Math.floor(scaledInnerY + scaledBubbleHeight * row)
+    );
+
+    // Generate bubbles using precomputed values
     const bubbles = [];
-
     for (let row = 0; row < rows; row++) {
-      let bubbleY = innerY + bubbleHeight * row;
+      const y = yCoords[row];
       for (let col = 0; col < cols; col++) {
-        const bubbleX = innerX + bubbleWidth * col;
         bubbles.push({
-          x: Math.floor(bubbleX * scaleX),
-          y: Math.floor(bubbleY * scaleY),
-          width: Math.floor(bubbleWidth * scaleX),
-          height: Math.floor(bubbleHeight * scaleY),
+          x: xCoords[col],
+          y,
+          width,
+          height,
           row,
           col,
         });
       }
     }
+
     return bubbles;
   };
 
   const allBubbles = boxes.flatMap((box) =>
-    getBubbleCoordinates(box, imageRef, box.gap)
+    getBubbleCoordinates(box, imageRef)
   );
 
   return (

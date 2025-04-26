@@ -13,6 +13,7 @@ const CropperSelector = () => {
   const [allCoordinates, setAllCoordinates] = useState([]);
   const [cropBoxes, setCropBoxes] = useState([]);
   const [boxData, setSetBoxData] = useState([]);
+
   const dispatch = useDispatch();
   const cropperRef = useRef(null);
   console.log(cropBoxes);
@@ -122,18 +123,14 @@ const CropperSelector = () => {
       setCropBoxes((prev) => {
         return [...prev, obj];
       });
-      const {
-        topLeftX,
-        topLeftY,
-        bottomRightX,
-        bottomRightY
-      } = cropData.coordinates;
+      const { topLeftX, topLeftY, bottomRightX, bottomRightY } =
+        cropData.coordinates;
 
       const obj2 = {
         x: topLeftX,
         y: topLeftY,
         width: bottomRightX - topLeftX,
-        height: bottomRightY - topLeftY
+        height: bottomRightY - topLeftY,
       };
 
       setSetBoxData((prev) => [...prev, obj2]);
@@ -201,31 +198,34 @@ const CropperSelector = () => {
         </button>
       </div>
       <div>
-        
-      {boxData.length > 0 && (
-        <table border="1" cellPadding="10" style={{ marginTop: '20px', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>X</th>
-              <th>Y</th>
-              <th>Width</th>
-              <th>Height</th>
-            </tr>
-          </thead>
-          <tbody>
-            {boxData.map((box, index) => (
-              <tr key={index}>
-                <td>{index + 1}</td>
-                <td>{box.x.toFixed(2)}</td>
-                <td>{box.y.toFixed(2)}</td>
-                <td>{box.width.toFixed(2)}</td>
-                <td>{box.height.toFixed(2)}</td>
+        {boxData.length > 0 && (
+          <table
+            border="1"
+            cellPadding="10"
+            style={{ marginTop: "20px", borderCollapse: "collapse" }}
+          >
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Width</th>
+                <th>Height</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {boxData.map((box, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{box.x.toFixed(2)}</td>
+                  <td>{box.y.toFixed(2)}</td>
+                  <td>{box.width.toFixed(2)}</td>
+                  <td>{box.height.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

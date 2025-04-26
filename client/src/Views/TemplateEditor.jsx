@@ -3,24 +3,30 @@ import { Rnd } from "react-rnd";
 import FormData from "../Component/FormData";
 import classes from "./Template.module.css";
 const TemplateEditor = ({ image }) => {
-  const [boxes, setBoxes] = useState([
-    {
-      x: 50,
-      y: 50,
-      width: 150,
-      height: 100,
-      totalCol: 8,
-      totalRow: 10,
-      gap: 1,
-    },
-  ]);
+  const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
   const [currentBoxData, setCurrentBoxData] = useState(null);
   const imageRef = useRef(null);
   const containerRef = useRef(null);
   const [trigger, setTrigger] = useState(false);
   const [containerSize, setContainerSize] = useState({});
+  const [zoomScale, setZoomScale] = useState(1);
 
+  useEffect(() => {
+    const handledeleteKey = (e) => {
+      if (e.key === "Delete" && activeBox !== null) {
+        const res = window.confirm("Are you sure you want to delete this box?");
+        if (res) {
+          setBoxes((prev) => prev.filter((_, i) => i !== activeBox));
+          setActiveBox(null);
+        }
+      }
+    };
+    window.addEventListener("keydown", handledeleteKey);
+    return () => {
+      window.removeEventListener("keydown", handledeleteKey);
+    };
+  }, [activeBox]);
   useEffect(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
@@ -159,7 +165,6 @@ const TemplateEditor = ({ image }) => {
       </Rnd>
     );
   });
-  console.log(boxes);
 
   const getBubbleCoordinates = (box, imageRef) => {
     const image = imageRef.current;
@@ -211,9 +216,28 @@ const TemplateEditor = ({ image }) => {
     return bubbles;
   };
 
-  const allBubbles = boxes.flatMap((box) =>
-    getBubbleCoordinates(box, imageRef)
-  );
+  const allBubbles = boxes.map((box) => getBubbleCoordinates(box, imageRef));
+
+  const downloadHandler = () => {
+    const dataStr = JSON.stringify(allBubbles, null, 2); // Convert to formatted JSON
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "template.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url); // Clean up
+  };
+  const zoomOut = () => {
+    setZoomScale((prev) => prev - 0.1);
+  };
+  const zoomIn = () => {
+    setZoomScale((prev) => prev + 0.1);
+  };
 
   return (
     <div>
@@ -223,6 +247,10 @@ const TemplateEditor = ({ image }) => {
             position: "relative",
             display: "inline-block",
             border: "1px solid #ccc",
+            // scale: zoomScale,
+            overflow: "hidden",
+            transform: `scale(${zoomScale})`,
+            transformOrigin: "top left", // Zoom from top-left
           }}
         >
           <img
@@ -244,13 +272,16 @@ const TemplateEditor = ({ image }) => {
             currentBoxData={currentBoxData}
             setBoxes={setBoxes}
             activeBox={activeBox}
+            allBubbles={allBubbles}
           />
         </div>
       </section>
-      <div style={{ marginTop: "10px" }}>
+      <div style={{ marginTop: "10px",zIndex: 9999 }}>
         <button onClick={addBox}>Add Box</button>
+        {/* <button onClick={zoomIn}>Zoom in</button>
+        <button onClick={zoomOut}>Zoom out</button> */}
         <h4>Image Coordinates (based on natural image size):</h4>
-        <pre>{JSON.stringify(boxes.map(getImageCoordinates), null, 2)}</pre>
+        {/* <pre>{JSON.stringify(boxes.map(getImageCoordinates), null, 2)}</pre> */}
         <pre>{JSON.stringify(allBubbles, null, 2)}</pre>
       </div>
     </div>

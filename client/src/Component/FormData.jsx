@@ -5,7 +5,23 @@ const FormData = ({
   currentBoxData,
   setBoxes,
   activeBox,
+  allBubbles,
 }) => {
+  const downloadHandler = () => {
+    const jsondata = allBubbles[activeBox];
+    const dataStr = JSON.stringify(jsondata, null, 2); // Convert to formatted JSON
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "template.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url); // Clean up
+  };
   const onSubmitHandler = (e) => {
     e.preventDefault();
     const enteredRow = e.target[0].value;
@@ -83,6 +99,9 @@ const FormData = ({
       </div>
 
       <button type="submit">Submit</button>
+      <button type="button" onClick={downloadHandler}>
+        Download Data
+      </button>
     </form>
   );
 };

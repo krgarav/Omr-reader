@@ -53,14 +53,25 @@ const OmrProcessor = () => {
 
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
-    cv.findContours(binary, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    cv.findContours(
+      binary,
+      contours,
+      hierarchy,
+      cv.RETR_EXTERNAL,
+      cv.CHAIN_APPROX_SIMPLE
+    );
 
     let detectedText = "";
     for (let i = 0; i < contours.size(); i++) {
       let cnt = contours.get(i);
       let rect = cv.boundingRect(cnt);
 
-      if (rect.width > 10 && rect.width < 50 && rect.height > 10 && rect.height < 50) {
+      if (
+        rect.width > 10 &&
+        rect.width < 50 &&
+        rect.height > 10 &&
+        rect.height < 50
+      ) {
         detectedText += `Bubble at (x:${rect.x}, y:${rect.y})\n`;
         ctx.strokeStyle = "red";
         ctx.lineWidth = 2;

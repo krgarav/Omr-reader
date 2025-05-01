@@ -6,6 +6,7 @@ const FormData = ({
   setBoxes,
   activeBox,
   allBubbles,
+  isNewBox,
 }) => {
   const downloadHandler = () => {
     const jsondata = allBubbles[activeBox];
@@ -24,84 +25,228 @@ const FormData = ({
   };
   const onSubmitHandler = (e) => {
     e.preventDefault();
-    const enteredRow = e.target[0].value;
-    const enteredCol = e.target[1].value;
-    const enteredGap = e.target[2].value;
-
-    setBoxes((prevBoxes) =>
-      prevBoxes.map((box, idx) =>
-        idx === activeBox
-          ? {
-              ...box,
-              totalCol: enteredRow,
-              totalRow: enteredCol,
-              gap: enteredGap,
-            }
-          : box
-      )
-    );
+    if (isNewBox) {
+      setBoxes((prevBoxes) => [
+        ...prevBoxes,
+        {
+          ...currentBoxData,
+          x: 100,
+          y: 100,
+          width: 150,
+          height: 100,
+        },
+      ]);
+    } else {
+      setBoxes((prevBoxes) =>
+        prevBoxes.map((box, idx) =>
+          idx === activeBox ? { ...currentBoxData } : box
+        )
+      );
+    }
   };
+
   return (
-    <form onSubmit={onSubmitHandler}>
-      <div>
-        <label for="totalRow">Col:</label>
-        <input
-          type="number"
-          id="totalRow"
-          name="firstName"
-          value={currentBoxData?.totalRow}
-          onChange={(e) =>
-            setCurrentBoxData((prev) => ({
-              ...prev,
-              totalRow: e.target.value,
-            }))
-          }
-        />
+    <form
+      onSubmit={onSubmitHandler}
+      className="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-xl shadow-lg space-y-6"
+    >
+      <h2 className="text-2xl font-semibold text-gray-800 text-center">
+        Box Settings
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label
+            htmlFor="totalRow"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Col:
+          </label>
+          <input
+            type="number"
+            id="totalRow"
+            value={currentBoxData?.totalRow}
+            onChange={(e) =>
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                totalRow: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="totalCol"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Row:
+          </label>
+          <input
+            type="number"
+            id="totalCol"
+            value={currentBoxData?.totalCol}
+            onChange={(e) =>
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                totalCol: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="fieldName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Field Name:
+          </label>
+          <input
+            type="text"
+            id="fieldName"
+            value={currentBoxData?.fieldName}
+            onChange={(e) =>
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                fieldName: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="fieldType"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Field Type:
+          </label>
+          <input
+            type="text"
+            id="fieldType"
+            value={currentBoxData?.fieldType}
+            onChange={(e) =>
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                fieldType: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="readingDirection"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Reading Direction:
+          </label>
+          <select
+            id="readingDirection"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            onChange={(e) =>
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                ReadingDirection: e.target.value,
+              }))
+            }
+          >
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical">Vertical</option>
+          </select>
+        </div>
+        <div>
+          <label
+            htmlFor="readingDirection"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Allow Multiple:
+          </label>
+          <select
+            id="allowMultiple"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            onChange={(e) =>
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                allowMultiple: e.target.value,
+              }))
+            }
+          >
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical">Vertical</option>
+          </select>
+        </div>
       </div>
 
-      <div>
-        <label for="totalCol">Row:</label>
-        <input
-          type="number"
-          id="totalCol"
-          name="lastName"
-          value={currentBoxData?.totalCol}
-          onChange={(e) =>
-            setCurrentBoxData((prev) => ({
-              ...prev,
-              totalCol: e.target.value,
-            }))
-          }
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label
+            htmlFor="margin"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Margin:
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={20}
+            step={0.1}
+            id="margin"
+            title={currentBoxData?.gap}
+            value={currentBoxData?.gap}
+            onChange={(e) => {
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                gap: e.target.value,
+              }));
+              setBoxes((prevBoxes) =>
+                prevBoxes.map((box, idx) =>
+                  idx === activeBox ? { ...box, gap: e.target.value } : box
+                )
+              );
+            }}
+            className="w-full"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="sensitivity"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Sensitivity:
+          </label>
+          <input
+            type="range"
+            min={0.01}
+            max={0.9}
+            step={0.01}
+            id="sensitivity"
+            value={currentBoxData?.bubbleIntensity}
+            onChange={(e) => {
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                bubbleIntensity: e.target.value,
+              }));
+            }}
+            className="w-full"
+          />
+        </div>
       </div>
 
-      <div>
-        <label for="margin">Margin:</label>
-        <input
-          type="range"
-          min={0}
-          max={20}
-          step={0.1}
-          id="phone"
-          name="phone"
-          onChange={(e) => {
-            console.log(e.target.value);
-            setCurrentBoxData(() => {
-              return { ...currentBoxData, gap: e.target.value };
-            });
-            setBoxes((prevBoxes) =>
-              prevBoxes.map((box, idx) =>
-                idx === activeBox ? { ...box, gap: e.target.value } : box
-              )
-            );
-          }}
-        />
+      <div className="pt-4 flex justify-end">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition"
+        >
+          Save
+        </button>
       </div>
-
-      <button type="submit">Submit</button>
-      <button type="button" onClick={downloadHandler}>
-        Download Data
-      </button>
     </form>
   );
 };

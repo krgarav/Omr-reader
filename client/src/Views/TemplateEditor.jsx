@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { Rnd } from "react-rnd";
 import FormData from "../Component/FormData";
 import classes from "./Template.module.css";
-const TemplateEditor = ({ image }) => {
+import { RxDragHandleDots2 } from "react-icons/rx";
+import Modal from "../Modal/Modal";
+const TemplateEditor = ({ image, title }) => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
   const [currentBoxData, setCurrentBoxData] = useState(null);
@@ -11,6 +13,7 @@ const TemplateEditor = ({ image }) => {
   const [trigger, setTrigger] = useState(false);
   const [containerSize, setContainerSize] = useState({});
   const [zoomScale, setZoomScale] = useState(1);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const handledeleteKey = (e) => {
@@ -59,7 +62,7 @@ const TemplateEditor = ({ image }) => {
       },
     ]);
   };
-
+  console.log(boxes);
   const removeBox = (index) => {
     setBoxes((prev) => prev.filter((_, i) => i !== index));
   };
@@ -110,7 +113,7 @@ const TemplateEditor = ({ image }) => {
         }}
       >
         <div ref={containerRef} className={style}>
-          {Array.from({ length: box.totalRow }).map((_, rowIdx) => (
+          {Array.from({ length: box.totalCol }).map((_, rowIdx) => (
             <div
               key={rowIdx}
               style={{
@@ -118,17 +121,17 @@ const TemplateEditor = ({ image }) => {
                 gap: `${box.gap}px`,
                 alignItems: "center",
                 width: "100%",
-                height: `${100 / box.totalRow}%`,
+                height: `${100 / box.totalCol}%`,
                 justifyContent: "space-between",
               }}
             >
-              {Array.from({ length: box.totalCol }).map((_, colIdx) => (
+              {Array.from({ length: box.totalRow }).map((_, colIdx) => (
                 <div
                   key={colIdx}
                   style={{
                     aspectRatio: "1",
-                    width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${
-                      box.totalCol
+                    width: `calc((100% - ${(box.totalRow - 1) * box.gap}px) / ${
+                      box.totalRow
                     })`,
                     height: "80%",
                     borderRadius: "50%",
@@ -238,9 +241,19 @@ const TemplateEditor = ({ image }) => {
   const zoomIn = () => {
     setZoomScale((prev) => prev + 0.1);
   };
-
+  const saveTemplate = () => {
+    // console.log(boxes);
+    const mappedData = boxes.map((box, idx) => {
+      return { ...box, bubbles: allBubbles[idx] };
+    });
+    console.log(mappedData);
+  };
   return (
     <div>
+      <h1 className="text-4xl font-bold text-gray-800 text-center mb-6 drop-shadow-sm">
+        {title}
+      </h1>
+
       <section style={{ display: "flex" }}>
         <div
           style={{
@@ -267,23 +280,70 @@ const TemplateEditor = ({ image }) => {
           {selectedFields}
         </div>
         <div>
+          {activeBox !== null && (
+            <Rnd
+              default={{
+                x: 100,
+                y: 100,
+                width: 400,
+                height: "auto",
+              }}
+              bounds="window"
+              enableResizing={false}
+              dragHandleClassName="drag-handle"
+              className="z-[99] fixed"
+            >
+              <div className="bg-white rounded-lg shadow-lg w-full">
+                {/* Drag handle bar */}
+                <div className="bg-blue-600 text-white px-4 py-2 rounded-t-lg drag-handle cursor-move flex items-center gap-2">
+                  <RxDragHandleDots2 className="text-xl" />
+                  <span>Move Form</span>
+                </div>
+
+                {/* Actual form (not draggable) */}
+                <div className="p-4">
+                  <FormData
+                    setCurrentBoxData={setCurrentBoxData}
+                    currentBoxData={currentBoxData}
+                    setBoxes={setBoxes}
+                    activeBox={activeBox}
+                    allBubbles={allBubbles}
+                  />
+                </div>
+              </div>
+            </Rnd>
+          )}
+        </div>
+      </section>
+
+      <div className="flex justify-center mt-1 z-[9999]">
+        <button
+          onClick={() => setIsOpen(true)}
+          // onClick={addBox}
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200"
+        >
+          Add Box
+        </button>
+      </div>
+      <button
+        onClick={saveTemplate}
+        className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-green-700 transition duration-200 z-50"
+      >
+        Save Template
+      </button>
+      {isOpen && (
+        <Modal onClose={() => setIsOpen(false)}>
+          <h2 className="text-xl font-semibold mb-4">Modal Title</h2>
           <FormData
             setCurrentBoxData={setCurrentBoxData}
             currentBoxData={currentBoxData}
             setBoxes={setBoxes}
             activeBox={activeBox}
             allBubbles={allBubbles}
+            isNewBox={true}
           />
-        </div>
-      </section>
-      <div style={{ marginTop: "10px",zIndex: 9999 }}>
-        <button onClick={addBox}>Add Box</button>
-        {/* <button onClick={zoomIn}>Zoom in</button>
-        <button onClick={zoomOut}>Zoom out</button> */}
-        <h4>Image Coordinates (based on natural image size):</h4>
-        {/* <pre>{JSON.stringify(boxes.map(getImageCoordinates), null, 2)}</pre> */}
-        <pre>{JSON.stringify(allBubbles, null, 2)}</pre>
-      </div>
+        </Modal>
+      )}
     </div>
   );
 };

@@ -246,12 +246,16 @@ const TemplateEditor = ({ image, title }) => {
     const mappedData = boxes.map((box, idx) => {
       return { ...box, bubbles: allBubbles[idx] };
     });
-    console.log(mappedData);
+    const obj = {
+      name: title,
+      fields: mappedData,
+    };
+    console.log(obj);
   };
   return (
     <div>
       <h1 className="text-4xl font-bold text-gray-800 text-center mb-6 drop-shadow-sm">
-        {title}
+        <span>Template Name : </span> {title}
       </h1>
 
       <section style={{ display: "flex" }}>
@@ -318,7 +322,10 @@ const TemplateEditor = ({ image, title }) => {
 
       <div className="flex justify-center mt-1 z-[9999]">
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setCurrentBoxData({});
+            setIsOpen(true);
+          }}
           // onClick={addBox}
           className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200"
         >
@@ -341,6 +348,7 @@ const TemplateEditor = ({ image, title }) => {
             activeBox={activeBox}
             allBubbles={allBubbles}
             isNewBox={true}
+            setIsOpen={setIsOpen}
           />
         </Modal>
       )}

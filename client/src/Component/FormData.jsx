@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const FormData = ({
   setCurrentBoxData,
@@ -7,24 +7,20 @@ const FormData = ({
   activeBox,
   allBubbles,
   isNewBox,
+  setIsOpen,
 }) => {
-  const downloadHandler = () => {
-    const jsondata = allBubbles[activeBox];
-    const dataStr = JSON.stringify(jsondata, null, 2); // Convert to formatted JSON
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
+  useEffect(() => {
+    if (isNewBox) {
+      setCurrentBoxData({});
+    }
+  }, [isNewBox]);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "template.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url); // Clean up
-  };
   const onSubmitHandler = (e) => {
     e.preventDefault();
+    if (!currentBoxData) {
+      alert("Please fill all the fields");
+      return;
+    }
     if (isNewBox) {
       setBoxes((prevBoxes) => [
         ...prevBoxes,
@@ -36,6 +32,8 @@ const FormData = ({
           height: 100,
         },
       ]);
+      setCurrentBoxData({});
+      setIsOpen(false);
     } else {
       setBoxes((prevBoxes) =>
         prevBoxes.map((box, idx) =>
@@ -57,27 +55,6 @@ const FormData = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label
-            htmlFor="totalRow"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Col:
-          </label>
-          <input
-            type="number"
-            id="totalRow"
-            value={currentBoxData?.totalRow}
-            onChange={(e) =>
-              setCurrentBoxData((prev) => ({
-                ...prev,
-                totalRow: e.target.value,
-              }))
-            }
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label
             htmlFor="totalCol"
             className="block text-sm font-medium text-gray-700"
           >
@@ -91,6 +68,26 @@ const FormData = ({
               setCurrentBoxData((prev) => ({
                 ...prev,
                 totalCol: e.target.value,
+              }))
+            }
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="totalRow"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Col:
+          </label>
+          <input
+            type="number"
+            id="totalRow"
+            value={currentBoxData?.totalRow}
+            onChange={(e) =>
+              setCurrentBoxData((prev) => ({
+                ...prev,
+                totalRow: e.target.value,
               }))
             }
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -125,18 +122,23 @@ const FormData = ({
           >
             Field Type:
           </label>
-          <input
-            type="text"
+          <select
             id="fieldType"
-            value={currentBoxData?.fieldType}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
             onChange={(e) =>
               setCurrentBoxData((prev) => ({
                 ...prev,
                 fieldType: e.target.value,
               }))
             }
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
+          >
+            <option value="alphabet" className="cursor-pointer">
+              Alphabet
+            </option>
+            <option value="integer" className="cursor-pointer">
+              Integer
+            </option>
+          </select>
         </div>
 
         <div>
@@ -177,8 +179,8 @@ const FormData = ({
               }))
             }
           >
-            <option value="horizontal">Horizontal</option>
-            <option value="vertical">Vertical</option>
+            <option value="true">True</option>
+            <option value="false">False</option>
           </select>
         </div>
       </div>
@@ -242,7 +244,7 @@ const FormData = ({
       <div className="pt-4 flex justify-end">
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition cursor-pointer"
         >
           Save
         </button>

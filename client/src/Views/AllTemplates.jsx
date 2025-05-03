@@ -1,12 +1,20 @@
 import React from "react";
+import { useNavigate } from "react-router";
 
 const AllTemplates = () => {
+  const navigate = useNavigate();
+  const createTemplateHandler = () => {
+    navigate("/create-template");
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-300 via-gray-100 to-blue-500 px-4 py-10">
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">All Templates</h1>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            onClick={createTemplateHandler}
+          >
             + Create Template
           </button>
         </div>

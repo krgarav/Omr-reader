@@ -13,8 +13,8 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/templates" element={<AllTemplates />} />
+        <Route path="/" element={<AllTemplates />} />
+        <Route path="/create-template" element={<Homepage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
